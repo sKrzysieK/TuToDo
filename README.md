@@ -15,8 +15,4 @@ Open '.env' file and swap DATABASE_URL placeholder with your personal MongoDB ur
 TuToDo is a simple task-organization app which allows user to create lists and fill them with todos. 
 
 ## Project status
-Project is still in progress.
-
-## Changelog:
-25.05.2022
-  
+Project is still in progress. Adding lists and client-database communication works as intended. There're a few functionalities to implement, including adding tasks and removing lists and todos.

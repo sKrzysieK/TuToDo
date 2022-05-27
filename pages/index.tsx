@@ -1,11 +1,9 @@
+//* React
+import { FC, useState } from "react";
 //* NextJS
-import type { NextPage } from "next";
 import Head from "next/head";
 //* Fonts and Icons
 import { faCirclePlus } from "@fortawesome/free-solid-svg-icons";
-import { useState } from "react";
-//* Helpers
-import isDark from "../helpers/isDark";
 
 //* Components
 import HomeLayout from "../components/home/HomeLayout";
@@ -14,30 +12,42 @@ import HomeHeading from "../components/home/HomeHeading";
 import HomeParagraph from "../components/home/HomeParagraph";
 import HomeStyledIcon from "../components/home/HomeStyledIcon";
 import ListsBox from "../components/home/Lists/ListsBox";
-import ListsTile from "../components/home/Lists/ListsTile";
+import Portal from "../components/Portal";
 
-const Home: NextPage = () => {
+//* Prisma
+import { List } from "@prisma/client";
+
+//* Interfaces
+interface HomeProps extends FC {
+  lists: List[];
+}
+
+const Home = (props: HomeProps) => {
   //* State
   const [showModal, setShowModal] = useState<boolean>(false);
-  const [lists, setLists] = useState<any[]>([
-    { id: 1, name: "List1", color: "#123456" },
-    { id: 2, name: "List2", color: "#654321" },
-  ]);
+  const [lists, setLists] = useState<any[]>(props.lists);
 
   //* Handlers
   const showModalHandler = () => setShowModal(true);
   const closeModalHandler = () => setShowModal(false);
-  const addListHandler = (list: { name: string; color: string }) => {
-    setLists((prev) => [...prev, { id: lists.length + 1, ...list }]);
+  const addListHandler = async (list: List) => {
+    const res = await fetch("http://localhost:3000/api/add-list", {
+      method: "POST",
+      body: JSON.stringify(list),
+    });
+    const data = await res.json();
+    setLists((prev) => [...prev, data.item]);
   };
 
   return (
     <>
-      <AddListModal
-        show={showModal}
-        closeModalHandler={closeModalHandler}
-        addListHandler={addListHandler}
-      />
+      <Portal>
+        <AddListModal
+          show={showModal}
+          closeModalHandler={closeModalHandler}
+          addListHandler={addListHandler}
+        />
+      </Portal>
       <Head>
         <title>TuToDo! | Home</title>
       </Head>
@@ -45,27 +55,17 @@ const Home: NextPage = () => {
         <HomeHeading>Welcome to TuToDo!</HomeHeading>
         <HomeParagraph>choose list of todos or add a new one</HomeParagraph>
         <HomeStyledIcon icon={faCirclePlus} onClick={showModalHandler} />
-        <ListsBox>
-          {lists.map((list) => (
-            <ListsTile
-              key={list.id}
-              style={{
-                backgroundColor: list.color,
-                color: isDark(list.color) ? "#ffffff" : "#000000",
-              }}
-            >
-              <p>{list.name}</p>
-            </ListsTile>
-          ))}
-        </ListsBox>
+        <ListsBox lists={lists} />
       </HomeLayout>
     </>
   );
 };
 
 export async function getServerSideProps() {
+  const res = await fetch("http://localhost:3000/api/get-lists");
+  const data = await res.json();
   return {
-    props: {},
+    props: { lists: data },
   };
 }
 
